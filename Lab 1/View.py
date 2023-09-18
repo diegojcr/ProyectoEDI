@@ -1,6 +1,6 @@
 import B_Tree
 
-bada = B_Tree.BTree(t=2)
+bada = B_Tree.BTree(t=1000)
 
 def menuPrincipal():
     continuar = True
@@ -10,17 +10,18 @@ def menuPrincipal():
             print("--- MENU PRINCIPAL ---")
             print("1. Listar candidatos")
             print("2. Escribir datos en un archivo JSON")
-            print("3. Buscar candidato")
-            print("4. Actualizar candidato")
-            print("5. Eliminar candidato")
-            print("6. Leer archivo JSONL")
-            print("7. Salir del programa")
+            print("3. Buscar candidato por DPI")
+            print("4. Buscar candidato por Nombre")
+            print("5. Eliminar candidato por DPI")
+            print("6. Eliminar candidato por Nombre")
+            print("7. Leer archivo JSONL")
+            print("8. Salir del programa")
             print("-----------------------")
             opcion = int(input("Seleccione una opción: "))
 
-            if opcion < 1 or opcion > 7:
+            if opcion < 1 or opcion > 8:
                 print("Opción incorrecta, ingrese nuevamente...")
-            elif opcion == 7:
+            elif opcion == 8:
                 continuar = False
                 break
             else:
@@ -33,35 +34,20 @@ def ejecutarOpcion(opcion):
     elif opcion == 2:
         B_Tree.BTree.escribirArchivo()
     elif opcion == 3:
-        dpi = int(input("Ingrese el dpi del candidato a buscar:"))
+        dpi = input("Ingrese el dpi del candidato a buscar:")
         B_Tree.BTree.buscarC(dpi)
     elif opcion == 4:
-        actualizarCandidato()
+        nombre = input("Ingrese el nombre del candidato a buscar:")
+        B_Tree.BTree.buscarCporNombre(nombre)
     elif opcion == 5:
-        dpi = int(input("Ingrese el dpi del candidato a eliminar:"))
-        B_Tree.BTree.eliminarC(dpi)
+        dpi = input("Ingrese el dpi del candidato a eliminar:")
+        bada.eliminarC(dpi)
     elif opcion == 6:
+        name = input("Ingrese el nombre del candidato a eliminar:")
+        B_Tree.BTree.elimincarCporNombre(name)
+    elif opcion == 7:
         B_Tree.BTree.cargarJson()
 
-def listarCandidatos():
-    print("cerote")
 
-def insertarCandidato():
-    print("---Insertar un nuevo candidato---")
-    nombre = input("Ingrese el nombre: ")
-    dpi = int(input("Ingrese el dpi: "))
-    fecha_nac = input("Ingrese la fecha de nacimiento: ")
-    direccion = input("Ingrese la dirección: ")
-    cand = candidatos(nombre,dpi,fecha_nac,direccion)
-    
-    Arbol.insertar(cand)
-def buscarCandidato():
-    print("Buscar")
-
-def actualizarCandidato():
-    print("actualizar")
-
-def eliminarCandidato():
-    print("eliminar")
 
 menuPrincipal()

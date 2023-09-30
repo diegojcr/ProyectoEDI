@@ -1,4 +1,6 @@
 import json
+import Controller
+diccionario_ascii = ["NUL","SOH","STX","ETX","EOT","ENQ","ACK","BEL","BS","HT","LF","VT","FF","CR","SO","SI","DLE","DC1","DC2","DC3","DC4","NAK","SYN","ETB","CAN","EM","SUB","ESC","FS","GS","RS","US"," ","!","'","#","$","%","&","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","[","]","^","_","`","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","{","|","}","~","¿","Á","É","Í","Ó","Ú","Ä","Ë","Ï","Ö","Ü","Ñ","ñ","/","¡","á","é","í","ó","ú"]
 
 class BTreeNode(object):
   
@@ -126,9 +128,12 @@ class BTree(object):
 
 
 
+    #diccionario_ascii = ["NUL","SOH","STX","ETX","EOT","ENQ","ACK","BEL","BS","HT","LF","VT","FF","CR","SO","SI","DLE","DC1","DC2","DC3","DC4","NAK","SYN","ETB","CAN","EM","SUB","ESC","FS","GS","RS","US"," ","!","'","#","$","%","&","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","[","]","^","_","`","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","{","|","}","~","¿","Á","É","Í","Ó","Ú","Ä","Ë","Ï","Ö","Ü","Ñ","ñ","/","¡","á","é","í","ó","ú"]
+
     def cargarJson():
+
         # Cargar datos desde un archivo JSONL
-        with open('C:/Users/Diego/Desktop/datos.json', 'r') as jsonl_file:
+        with open('C:/Users/Diego/Desktop/input.json', 'r') as jsonl_file:
             for line in jsonl_file:
                 #insert data 
                 if line.startswith("INSERT;"):
@@ -136,13 +141,31 @@ class BTree(object):
 
                     try:
                         data = json.loads(json_data)
-                                
+                              
                         name = data["name"]
                         dpi = data["dpi"]
-                        date_birth = data["dateBirth"]
+                        date_birth = data["datebirth"]
                         address = data["address"]
-
-                        b_tree.insert(dpi, data)
+                        companies = []
+                        #companies = data["companies"]
+                        if "companies" in data:
+                            indice = 0
+                            empresas_cod = []
+                            for company in data["companies"]:
+                                companies.append(dpi+" "+company)
+                                frase = Controller.comprimir(companies[indice],diccionario_ascii)
+                                empresas_cod.append(frase)
+                                indice = indice+1
+                        
+                        newData = {
+                            "name": name,
+                            "dpi": dpi,
+                            "date_birth" : date_birth,
+                            "address": address,
+                            "companies": empresas_cod
+                        }
+                        b_tree.insert(dpi, newData)
+                        
                     except json.JSONDecodeError:
 
                         print("Error al decodificar JSON en la línea:", line)
@@ -168,34 +191,30 @@ class BTree(object):
                         data = json.loads(json_data)
                         
                         
-                        if "dateBirth" in data:
+                        if "companies" in data:
                             name = data["name"]
                             dpi = data["dpi"]
-                            date_birth = data["dateBirth"]
-                            result = b_tree.search(dpi)
-                            cliente = result[0].data[result[1]]
-                            address = cliente['address']
+                            date_birth = data["datebirth"]
+                            address = data["address"]
+                            companies = []
+                            #companies = data["companies"]
+                            if "companies" in data:
+                                indice = 0
+                                empresas_cod = []
+                                for company in data["companies"]:
+                                    companies.append(dpi+" "+company)
+                                    frase = Controller.comprimir(companies[indice],diccionario_ascii)
+                                    empresas_cod.append(frase)
+                                    indice = indice+1
+                            
                             newData = {
                                 "name": name,
                                 "dpi": dpi,
-                                "dateBirth": date_birth,
-                                "address": address
+                                "date_birth" : date_birth,
+                                "address": address,
+                                "companies": empresas_cod
                             }
                             b_tree.actualizarC(dpi,newData)
-                        elif "address" in data:
-                            name = data["name"]
-                            dpi = data["dpi"]
-                            address = data["address"]
-                            result = b_tree.search(dpi)
-                            cliente = result[0].data[result[1]]
-                            date_birth = cliente['dateBirth']
-                            newData = {
-                                "name": name,
-                                "dpi": dpi,
-                                "dateBirth":date_birth,
-                                "address":address
-                            }
-                            b_tree.actualizarC(dpi, newData)
 
                     except json.JSONDecodeError:
 
@@ -216,12 +235,23 @@ class BTree(object):
         result = b_tree.search(dpi)
         if result:
             cliente = result[0].data[result[1]]
+            companies = []
+            #companies = data["companies"]
+            if "companies" in cliente:
+                indice = 0
+                frase = []
+                for company in cliente["companies"]:
+                    companies.append(company)
+                    frase.append(Controller.descomprimir(companies[indice],diccionario_ascii))
+                    indice = indice+1
+            
             print(f"Cliente encontrado: {cliente['name']} (DPI: {dpi})")
             print("Información del Cliente:")
             print(f"Nombre: {cliente['name']}")
-            print(f"DPI: {dpi}")
-            print(f"Fecha de Nacimiento: {cliente['dateBirth']}")
-            print(f"País de Residencia: {cliente['address']}")
+            print(f"Fecha de Nacimiento: {cliente['date_birth']}")
+            print(f"Dirección: {cliente['address']}")
+            print(f"Empresas: {frase}")
+
         else:
             print(f"Cliente con dpi {dpi} no encontrado.")
     
@@ -234,7 +264,7 @@ class BTree(object):
             print("Información del Cliente:")
             print(f"Nombre: {cliente['name']}")
             print(f"DPI: {cliente['dpi']}")
-            print(f"Fecha de Nacimiento: {cliente['dateBirth']}")
+            print(f"Fecha de Nacimiento: {cliente['datebirth']}")
             print(f"País de Residencia: {cliente['address']}")
         else:
             print(f"Cliente con nombre {name} no encontrado.")

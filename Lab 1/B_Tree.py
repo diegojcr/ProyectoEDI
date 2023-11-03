@@ -1,6 +1,10 @@
 import json
 import Controller
-diccionario_ascii = ["NUL","SOH","STX","ETX","EOT","ENQ","ACK","BEL","BS","HT","LF","VT","FF","CR","SO","SI","DLE","DC1","DC2","DC3","DC4","NAK","SYN","ETB","CAN","EM","SUB","ESC","FS","GS","RS","US"," ","!","'","#","$","%","&","(",")","*","+",",","-",".","/","0","1","2","3","4","5","6","7","8","9",":",";","<","=",">","?","@","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","[","]","^","_","`","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","{","|","}","~","¿","Á","É","Í","Ó","Ú","Ä","Ë","Ï","Ö","Ü","Ñ","ñ","/","¡","á","é","í","ó","ú"]
+import os
+import glob
+import re
+import Keys
+
 
 class BTreeNode(object):
   
@@ -133,7 +137,7 @@ class BTree(object):
     def cargarJson():
 
         # Cargar datos desde un archivo JSONL
-        with open('C:/Users/Diego/Desktop/input.json', 'r') as jsonl_file:
+        with open('C:/Users/Diego/Desktop/input4.json', 'r') as jsonl_file:
             for line in jsonl_file:
                 #insert data 
                 if line.startswith("INSERT;"):
@@ -147,24 +151,9 @@ class BTree(object):
                         date_birth = data["datebirth"]
                         address = data["address"]
                         companies = []
-                        #companies = data["companies"]
-                        if "companies" in data:
-                            indice = 0
-                            empresas_cod = []
-                            for company in data["companies"]:
-                                companies.append(dpi+" "+company)
-                                frase = Controller.comprimir(companies[indice],diccionario_ascii)
-                                empresas_cod.append(frase)
-                                indice = indice+1
+                        companies = data["companies"]
                         
-                        newData = {
-                            "name": name,
-                            "dpi": dpi,
-                            "date_birth" : date_birth,
-                            "address": address,
-                            "companies": empresas_cod
-                        }
-                        b_tree.insert(dpi, newData)
+                        b_tree.insert(dpi, data)
                         
                     except json.JSONDecodeError:
 
@@ -197,22 +186,14 @@ class BTree(object):
                             date_birth = data["datebirth"]
                             address = data["address"]
                             companies = []
-                            #companies = data["companies"]
-                            if "companies" in data:
-                                indice = 0
-                                empresas_cod = []
-                                for company in data["companies"]:
-                                    companies.append(dpi+" "+company)
-                                    frase = Controller.comprimir(companies[indice],diccionario_ascii)
-                                    empresas_cod.append(frase)
-                                    indice = indice+1
+                            companies = data["companies"]
                             
                             newData = {
                                 "name": name,
                                 "dpi": dpi,
-                                "date_birth" : date_birth,
+                                "datebirth" : date_birth,
                                 "address": address,
-                                "companies": empresas_cod
+                                "companies": companies
                             }
                             b_tree.actualizarC(dpi,newData)
 
@@ -221,7 +202,56 @@ class BTree(object):
                         print("Error al decodificar JSON en la línea:", line)
 
 
+    def leerCartas():
+        # Ruta de la carpeta que deseas recorrer
+        carpeta = 'C:/Users/Diego/Desktop/inputs'
 
+        # Extensión de los archivos que quieres procesar (en este caso, archivos de texto .txt)
+        extension = '*.txt'
+
+        # Usar glob para obtener una lista de archivos en la carpeta con la extensión deseada
+        archivos = glob.glob(os.path.join(carpeta, extension))
+
+        regex = r'CONV-(\d+)-\d+\.txt'
+
+        # Recorrer la lista de archivos y realizar alguna acción en cada uno
+        for archivo in archivos:
+            nombre_archivo = os.path.basename(archivo)
+            match = re.search(regex, nombre_archivo)
+            dpiObtenido = match.group(1)
+            result = b_tree.search(dpiObtenido)
+            cliente = result[0].data[result[1]]
+            name = cliente["name"]
+            dpi = cliente["dpi"]
+            date_birth = cliente["datebirth"]
+            address = cliente["address"]
+            companies = []
+            companies = cliente["companies"]
+            conversaciones = []
+            conversaciones = cliente.get("conversaciones",[])
+            conversaciones.append(nombre_archivo)
+            newData = {
+                "name" : name,
+                "dpi" : dpi,
+                "datebirth" : date_birth,
+                "address" : address,
+                "companies" : companies,
+                "conversaciones" : conversaciones
+            }
+            b_tree.actualizarC(dpiObtenido, newData)
+            """
+            with open(archivo, 'r') as file:
+                # Realiza alguna acción con el archivo de texto, por ejemplo, imprimir su contenido
+                contenido = file.read()
+                cifrado = Controller.cifrar_transposicion(contenido,dpiObtenido)
+                print(f'Nombre del archivo: {nombre_archivo}')
+                print(f'Contenido del archivo {archivo}:\n{cifrado}')
+            """    
+    
+    
+
+    
+    
     def listar():
         # Listar todos los clientes
         all_clients = b_tree.list_clients()
@@ -236,25 +266,76 @@ class BTree(object):
         if result:
             cliente = result[0].data[result[1]]
             companies = []
-            #companies = data["companies"]
-            if "companies" in cliente:
-                indice = 0
-                frase = []
-                for company in cliente["companies"]:
-                    companies.append(company)
-                    frase.append(Controller.descomprimir(companies[indice],diccionario_ascii))
-                    indice = indice+1
+            
             
             print(f"Cliente encontrado: {cliente['name']} (DPI: {dpi})")
             print("Información del Cliente:")
             print(f"Nombre: {cliente['name']}")
-            print(f"Fecha de Nacimiento: {cliente['date_birth']}")
+            print(f"Fecha de Nacimiento: {cliente['datebirth']}")
             print(f"Dirección: {cliente['address']}")
-            print(f"Empresas: {frase}")
+            print(f"Empresas: {cliente['companies']}")
+            print(f"Conversaciones: {cliente['conversaciones']}")
 
         else:
             print(f"Cliente con dpi {dpi} no encontrado.")
     
+    def verCartas(dpi):
+        carpeta = 'C:/Users/Diego/Desktop/inputs'
+
+        regex = re.compile(r'CONV-{}-\d+\.txt'.format(dpi))
+
+        archivos = glob.glob(os.path.join(carpeta, '*.txt'))
+
+        for archivo in archivos:
+            
+            nombre_archivo = os.path.basename(archivo)
+            if regex.match(nombre_archivo):
+                opc = input("Se mostrarán las conversaciones: ")
+                print(f'-------------FIRMA DIGITAL------------')
+                print(f'Conversación para cliente con dpi: {dpi}: {nombre_archivo}')
+                with open(archivo, 'r') as file:
+                    contenido = file.read()
+                    men_hash_firma = Controller.hash_mensaje(contenido)
+                    p, q = Keys.generar_primos_aleatorios()
+                    clave_publica, clave_privada = Keys.generate_keypair(p,q)
+                    firma = Controller.firmar_mensaje(men_hash_firma,clave_privada)
+                    print(f'\n{firma}')
+                    print(f'-------------CONVERSACION CIFRADA------------')
+                    cifrado = Controller.cifrar_transposicion(contenido,dpi)
+                    print(f'Contenido del archivo {archivo}:\n{cifrado}')
+                    opc = input("Desea ver esta carta descifrada?: ")
+                    if(opc == "Si" or opc == "si"):
+                        descifrada = Controller.descifrar_transposicion(cifrado,dpi)
+                        print(f'-------------CONVERSACION DESCIFRADA------------')
+                        print(f'Contenido del archivo {archivo}:\n{descifrada}')
+                        men_hash_descifrado = Controller.hash_mensaje(descifrada)
+                        if(men_hash_firma == men_hash_descifrado):
+                            print(f'---------------------')
+                            print(f'La firma es válida!!')
+                            print(f'---------------------')
+                        else:
+                            print(f'---------------------')
+                            print(f'La firma no es válida. El documento ha sido modificado')
+                            print(f'---------------------')
+                """
+                print(f'-------------CONVERSACION CIFRADA------------')
+                print(f'Encontrada carta para cliente con dpi: {dpi}: {nombre_archivo}')
+                # Leer y mostrar el contenido del archivo
+                with open(archivo, 'r') as file:
+                    contenido = file.read()
+                    cifrado = Controller.cifrar_transposicion(contenido,dpi)
+                    print(f'Contenido del archivo {archivo}:\n{cifrado}')
+                    opc = input("Desea ver esta carta descifrada?: ")
+                    if(opc == "Si" or opc == "si"):
+                        descifrada = Controller.descifrar_transposicion(cifrado,dpi)
+                        print(f'-------------CONVERSACION DESCIFRADA------------')
+                        print(f'Contenido del archivo {archivo}:\n{descifrada}')
+                        men_hash = Controller.hash_mensaje(descifrada)
+                        print(f'Mensaje con Hash {archivo}:\n{men_hash}')
+                """
+
+
+
     def buscarCporNombre(name):
         #Buscar un cliente
         result = b_tree.searchByName(name)
@@ -315,12 +396,7 @@ class BTree(object):
         else:
             print(f"Cliente con DPI {dpi} no encontrado.")
 
-    def escribirArchivo():
-        all_clients = b_tree.list_clients()
-        nombre_archivo = "C:/Users/Diego/Desktop/imprimir.json"
 
-        with open(nombre_archivo, 'w') as archivo_json:
-            json.dump(all_clients, archivo_json)
 
 
 

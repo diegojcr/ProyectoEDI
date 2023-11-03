@@ -9,7 +9,7 @@ def menuPrincipal():
         while(not opcionCorrecta):
             print("--- MENU PRINCIPAL ---")
             print("1. Listar candidatos")
-            print("2. Escribir datos en un archivo JSON")
+            print("2. Leer cartas en archivo")
             print("3. Buscar candidato por DPI")
             print("4. Buscar candidato por Nombre")
             print("5. Eliminar candidato por DPI")
@@ -32,10 +32,13 @@ def ejecutarOpcion(opcion):
     if opcion == 1:
         B_Tree.BTree.listar()
     elif opcion == 2:
-        B_Tree.BTree.escribirArchivo()
+        B_Tree.BTree.leerCartas()
     elif opcion == 3:
         dpi = input("Ingrese el dpi del candidato a buscar:")
         B_Tree.BTree.buscarC(dpi)
+        op = input("Le gustaría ver slas conversaciones almacenadas?: ")
+        if op == "Si" or op == "si":
+            B_Tree.BTree.verCartas(dpi)
     elif opcion == 4:
         nombre = input("Ingrese el nombre del candidato a buscar:")
         B_Tree.BTree.buscarCporNombre(nombre)

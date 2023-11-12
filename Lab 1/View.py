@@ -2,6 +2,16 @@ import B_Tree
 
 bada = B_Tree.BTree(t=1000)
 
+def login():
+    B_Tree.BTree.cargarJson()
+    print("-------BIENVENIDO-------")
+    print("-------INICIO DE SESION-----")
+    usuario = input("Ingrese el nombre del reclutador: ")
+    contra = usuario + "123"
+    contraseñaI = input("Ingrese la contraseña: ")
+    
+
+
 def menuPrincipal():
     continuar = True
     while(continuar):

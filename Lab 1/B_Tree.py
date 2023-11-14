@@ -137,7 +137,7 @@ class BTree(object):
     def cargarJson():
 
         # Cargar datos desde un archivo JSONL
-        with open('C:/Users/Diego/Desktop/input4.json', 'r') as jsonl_file:
+        with open('C:/Users/Diego/Desktop/input.json', 'r') as jsonl_file:
             for line in jsonl_file:
                 #insert data 
                 if line.startswith("INSERT;"):
@@ -151,9 +151,26 @@ class BTree(object):
                         date_birth = data["datebirth"]
                         address = data["address"]
                         companies = []
-                        companies = data["companies"]
+                        reclutador = data["recluiter"]
                         
-                        b_tree.insert(dpi, data)
+
+                        if "companies" in data:
+                            indice = 0
+                            empresas_cod = []
+                            for company in data["companies"]:
+                                companies.append(dpi+" "+company)
+                                frase = Controller.comprimir(companies[indice])
+                                empresas_cod.append(frase)
+                                indice = indice+1
+
+                        newData = {
+                            "name": name,
+                            "dpi": dpi,
+                            "datebirth" : date_birth,
+                            "address": address,
+                            "companies": empresas_cod,
+                            "recluiter": reclutador
+                        }
                         
                     except json.JSONDecodeError:
 
@@ -187,13 +204,15 @@ class BTree(object):
                             address = data["address"]
                             companies = []
                             companies = data["companies"]
+                            reclutador = data["recluiter"]
                             
                             newData = {
                                 "name": name,
                                 "dpi": dpi,
                                 "datebirth" : date_birth,
                                 "address": address,
-                                "companies": companies
+                                "companies": companies,
+                                "recluiter": reclutador
                             }
                             b_tree.actualizarC(dpi,newData)
 
@@ -202,9 +221,9 @@ class BTree(object):
                         print("Error al decodificar JSON en la línea:", line)
 
 
-    def leerCartas():
+    def leerConv():
         # Ruta de la carpeta que deseas recorrer
-        carpeta = 'C:/Users/Diego/Desktop/inputs'
+        carpeta = 'C:/Users/Diego/Desktop/inputconversaciones'
 
         # Extensión de los archivos que quieres procesar (en este caso, archivos de texto .txt)
         extension = '*.txt'
@@ -219,26 +238,31 @@ class BTree(object):
             nombre_archivo = os.path.basename(archivo)
             match = re.search(regex, nombre_archivo)
             dpiObtenido = match.group(1)
+            
             result = b_tree.search(dpiObtenido)
-            cliente = result[0].data[result[1]]
-            name = cliente["name"]
-            dpi = cliente["dpi"]
-            date_birth = cliente["datebirth"]
-            address = cliente["address"]
-            companies = []
-            companies = cliente["companies"]
-            conversaciones = []
-            conversaciones = cliente.get("conversaciones",[])
-            conversaciones.append(nombre_archivo)
-            newData = {
-                "name" : name,
-                "dpi" : dpi,
-                "datebirth" : date_birth,
-                "address" : address,
-                "companies" : companies,
-                "conversaciones" : conversaciones
-            }
-            b_tree.actualizarC(dpiObtenido, newData)
+            if result:
+
+                cliente = result[0].data[result[1]]
+                name = cliente["name"]
+                dpi = cliente["dpi"]
+                date_birth = cliente["datebirth"]
+                address = cliente["address"]
+                companies = []
+                companies = cliente["companies"]
+                reclutador = cliente["recluiter"]
+                conversaciones = []
+                conversaciones = cliente.get("conversaciones",[])
+                conversaciones.append(nombre_archivo)
+                newData = {
+                    "name" : name,
+                    "dpi" : dpi,
+                    "datebirth" : date_birth,
+                    "address" : address,
+                    "companies" : companies,
+                    "recluiter": reclutador,
+                    "conversaciones" : conversaciones
+                }
+                b_tree.actualizarC(dpiObtenido, newData)
             """
             with open(archivo, 'r') as file:
                 # Realiza alguna acción con el archivo de texto, por ejemplo, imprimir su contenido
@@ -248,6 +272,50 @@ class BTree(object):
                 print(f'Contenido del archivo {archivo}:\n{cifrado}')
             """    
     
+    def leerCartas():
+        # Ruta de la carpeta que deseas recorrer
+        carpeta = 'C:/Users/Diego/Desktop/inputcartas'
+
+        # Extensión de los archivos que quieres procesar (en este caso, archivos de texto .txt)
+        extension = '*.txt'
+
+        # Usar glob para obtener una lista de archivos en la carpeta con la extensión deseada
+        archivos = glob.glob(os.path.join(carpeta, extension))
+
+        regex = r'REC-(\d+)-\d+\.txt'
+
+        # Recorrer la lista de archivos y realizar alguna acción en cada uno
+        for archivo in archivos:
+            nombre_archivo = os.path.basename(archivo)
+            match = re.search(regex, nombre_archivo)
+            dpiObtenido = match.group(1)
+            
+            result = b_tree.search(dpiObtenido)
+            if result:
+
+                cliente = result[0].data[result[1]]
+                name = cliente["name"]
+                dpi = cliente["dpi"]
+                date_birth = cliente["datebirth"]
+                address = cliente["address"]
+                companies = []
+                companies = cliente["companies"]
+                reclutador = cliente["recluiter"]
+                conversaciones = cliente["conversaciones"]
+                cartas = []
+                cartas = cliente.get("cartas",[])
+                cartas.append(nombre_archivo)
+                newData = {
+                    "name" : name,
+                    "dpi" : dpi,
+                    "datebirth" : date_birth,
+                    "address" : address,
+                    "companies" : companies,
+                    "recluiter": reclutador,
+                    "conversaciones": conversaciones,
+                    "cartas" : cartas
+                }
+                b_tree.actualizarC(dpiObtenido, newData)
     
 
     
@@ -396,7 +464,33 @@ class BTree(object):
         else:
             print(f"Cliente con DPI {dpi} no encontrado.")
 
+    def cargarPersonalizado(data_list, usuario):
+        for item in data_list:
+            if item.get("recluiter") == usuario:
+                companies = []
+                name = item.get("name")
+                dpi = item.get("dpi")
+                date_birth = item.get("datebirth")
+                address = item.get("address")
+                reclutador = item.get("recluiter")
+                #if item.get("companies") in data_list:
+                indice = 0
+                empresas_cod = []
+                for company in data_list[5]:
+                    companies.append(dpi+" "+company)
+                    frase = Controller.comprimir(companies[indice])
+                    empresas_cod.append(frase)
+                    indice = indice+1
 
+                newData = {
+                    "name": name,
+                    "dpi": dpi,
+                    "datebirth" : date_birth,
+                    "address": address,
+                    "companies": empresas_cod,
+                    "recluiter": reclutador
+                }
+                b_tree.insert(dpi,newData)
 
 
 
